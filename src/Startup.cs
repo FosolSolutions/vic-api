@@ -13,6 +13,10 @@ namespace Vic.Api
 {
     public class Startup
     {
+        #region Variables
+        private const string AllowedOrigins = "allowedOrigins";
+        #endregion
+
         #region Properties
         /// <summary>
         /// get - The application configuration settings.
@@ -56,6 +60,18 @@ namespace Vic.Api
                 //options.Converters.Add(new Int32ToStringJsonConverter());
             });
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: AllowedOrigins,
+                    builder =>
+                    {
+                        builder
+                            .WithOrigins("http://localhost:3000", "https://localhost:3000")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod(); ;
+                    });
+            });
+
             if (this.Environment.IsDevelopment())
             {
                 // Ignore invalid SSL certificates.
@@ -80,6 +96,7 @@ namespace Vic.Api
             app.UseMiddleware(typeof(ErrorHandlingMiddleware));
 
             app.UseRouting();
+            app.UseCors(AllowedOrigins);
 
             app.UseAuthorization();
 
