@@ -1,34 +1,74 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Synology;
+using Vic.Api.Helpers.Middleware;
 
 namespace Vic.Api
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
+        #region Properties
+        /// <summary>
+        /// get - The application configuration settings.
+        /// </summary>
+        /// <value></value>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// get/set - The environment settings for the application.
+        /// </summary>
+        /// <value></value>
+        public IWebHostEnvironment Environment { get; }
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Creates a new instances of a Startup class.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="env"></param>
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        {
+            this.Configuration = configuration;
+            this.Environment = env;
+        }
+        #endregion
+
+        #region Methods
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSynologyFileStation(this.Configuration.GetSection("Synology"));
+            services.Configure<JsonSerializerOptions>(options =>
+            {
+                options.IgnoreNullValues = !String.IsNullOrWhiteSpace(this.Configuration["Serialization:Json:IgnoreNullValues"]) ? Boolean.Parse(this.Configuration["Serialization:Json:IgnoreNullValues"]) : false;
+                options.PropertyNameCaseInsensitive = !String.IsNullOrWhiteSpace(this.Configuration["Serialization:Json:PropertyNameCaseInsensitive"]) ? Boolean.Parse(this.Configuration["Serialization:Json:PropertyNameCaseInsensitive"]) : false;
+                options.PropertyNamingPolicy = this.Configuration["Serialization:Json:PropertyNamingPolicy"] == "CamelCase" ? JsonNamingPolicy.CamelCase : null;
+                options.WriteIndented = !String.IsNullOrWhiteSpace(this.Configuration["Serialization:Json:WriteIndented"]) ? Boolean.Parse(this.Configuration["Serialization:Json:WriteIndented"]) : false;
+                //options.Converters.Add(new JsonStringEnumConverter());
+                //options.Converters.Add(new Int32ToStringJsonConverter());
+            });
+
+            if (this.Environment.IsDevelopment())
+            {
+                // Ignore invalid SSL certificates.
+                services.AddHttpClient("HttpRequestClient")
+                    .ConfigurePrimaryHttpMessageHandler(() =>
+                    new HttpClientHandler()
+                    {
+                        ClientCertificateOptions = ClientCertificateOption.Manual,
+                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                    });
+            }
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -37,6 +77,7 @@ namespace Vic.Api
             }
 
             app.UseHttpsRedirection();
+            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
 
             app.UseRouting();
 
@@ -47,5 +88,6 @@ namespace Vic.Api
                 endpoints.MapControllers();
             });
         }
+        #endregion
     }
 }

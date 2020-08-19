@@ -7,7 +7,8 @@ EXPOSE 443 80
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 WORKDIR /src
 COPY *.sln .
-COPY ./src/*.csproj api/
+COPY ./src api/
+COPY ./libs libs/
 
 WORKDIR /src/api
 RUN dotnet restore
@@ -15,7 +16,7 @@ ENV PATH="$PATH:/root/.dotnet/tools"
 RUN dotnet tool install --global dotnet-ef --version 3.1.0
 # Copy everything else and build
 
-COPY ./src .
+WORKDIR /src/api
 RUN dotnet build "Vic.Api.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
 
 FROM build AS publish

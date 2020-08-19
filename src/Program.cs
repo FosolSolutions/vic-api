@@ -1,26 +1,53 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Vic.Api
 {
+    /// <summary>
+    /// Program class, provides the main program starting point for the API.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// The primary entry point for the application.
+        /// </summary>
+        /// <param name="args"></param>
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var builder = CreateWebHostBuilder(args);
+            builder.Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+        /// <summary>
+        /// Create a default configuration and setup for a web application.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
+        {
+
+            DotNetEnv.Env.Load();
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var config = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .Build();
+
+            return WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                });
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                    config.AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true);
+                    config.AddJsonFile("connectionstrings.json", optional: true, reloadOnChange: true);
+                    config.AddJsonFile($"connectionstrings.{env}.json", optional: true, reloadOnChange: true);
+                    config.AddEnvironmentVariables();
+                    config.AddCommandLine(args);
+                })
+                .UseUrls(config.GetValue<string>("ASPNETCORE_URLS"))
+                .UseStartup<Startup>();
+        }
     }
 }
