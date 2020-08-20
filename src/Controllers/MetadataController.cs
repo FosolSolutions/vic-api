@@ -73,7 +73,7 @@ namespace Vic.Api.Controllers
             {
                 Name = new System.IO.DirectoryInfo(path).Name,
                 Path = path,
-                PublishedOn = model.PublishedOn.Value,
+                PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
                 CreatedOn = model.CreatedOn ?? DateTime.UtcNow,
                 UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow
             };
@@ -84,7 +84,7 @@ namespace Vic.Api.Controllers
                 Path = model.Path,
                 Description = model.Description,
                 Author = model.Author,
-                PublishedOn = model.PublishedOn.Value,
+                PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
                 CreatedOn = model.CreatedOn ?? DateTime.UtcNow,
                 UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow,
                 Parent = parent
@@ -114,7 +114,7 @@ namespace Vic.Api.Controllers
             {
                 Name = new System.IO.DirectoryInfo(path).Name,
                 Path = path,
-                PublishedOn = model.PublishedOn.Value,
+                PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
                 CreatedOn = model.CreatedOn ?? DateTime.UtcNow,
                 UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow
             };
@@ -124,7 +124,7 @@ namespace Vic.Api.Controllers
             item.Description = model.Description;
             item.Path = model.Path;
             item.Author = model.Author;
-            item.PublishedOn = model.PublishedOn.Value;
+            item.PublishedOn = model.PublishedOn.Value.ToUniversalTime();
             item.CreatedOn = model.CreatedOn ?? DateTime.UtcNow;
             item.UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow;
             item.Parent = parent;
