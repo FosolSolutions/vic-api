@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Synology.FileStation
 {
+    /// <summary>
+    /// FileStationApi class, provides a service for making HTTP requests to synology file station.
+    /// </summary>
     public class FileStationApi : IDisposable, IFileStationApi
     {
         #region Variables
@@ -21,6 +24,12 @@ namespace Synology.FileStation
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Creates a new instances of a FileStationApi object, initializes with specified arguments.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="httpClient"></param>
+        /// <param name="logger"></param>
         public FileStationApi(IOptionsMonitor<Options.SynologyOptions> options, IHttpRequestClient httpClient, ILogger<FileStationApi> logger)
         {
             _options = options.CurrentValue;
@@ -30,13 +39,25 @@ namespace Synology.FileStation
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Dispose the http request client.
+        /// </summary>
         public void Dispose()
         {
             _client.Dispose();
         }
 
+        /// <summary>
+        /// Login to synology and retrieve a session id.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="session"></param>
+        /// <param name="format"></param>
+        /// <returns></returns>
         public async Task<DataModel<AuthenticationModel>> LoginAsync(string username, string password, string session = "FileStation", string format = "sid")
         {
+            _logger.LogDebug($"Making HTTP request to login");
             var query = new Dictionary<string, string>()
             {
                 { "api", "SYNO.API.Auth" },
@@ -52,8 +73,14 @@ namespace Synology.FileStation
             return await HandleResponseAsync<AuthenticationModel>(response);
         }
 
+        /// <summary>
+        /// Logout of synology for the specified session.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <returns></returns>
         public async Task<DataModel<string>> LogoutAsync(string session = "FileStation")
         {
+            _logger.LogDebug($"Making HTTP request to logout");
             var query = new Dictionary<string, string>()
             {
                 { "api", "SYNO.API.Auth" },
@@ -67,10 +94,23 @@ namespace Synology.FileStation
             return await HandleResponseAsync<string>(response);
         }
 
-        public async Task<DataModel<SharesModel>> ListSharesAsync(string path = "/", int offset = 0, int limit = 0, string sortBy = "name", string sortDirection = "asc", string fileType = "all", bool onlyWritable = false, string[] additional = null)
+        /// <summary>
+        /// Fetch a list of shares and folders at the specified 'path'.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <param name="sortBy"></param>
+        /// <param name="sortDirection"></param>
+        /// <param name="fileType"></param>
+        /// <param name="onlyWritable"></param>
+        /// <param name="additional"></param>
+        /// <returns></returns>
+        public async Task<DataModel<SharesModel>> ListSharesAsync(string path = "/", int offset = 0, int limit = 0, SortBy sortBy = SortBy.Name, SortDirection sortDirection = SortDirection.Ascending, string fileType = "all", bool onlyWritable = false, string[] additional = null)
         {
             if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(path));
 
+            _logger.LogDebug($"Making HTTP request to list shares");
             if (String.IsNullOrWhiteSpace(_sid)) await AuthenticateAsync();
             var values = new Dictionary<string, string>()
             {
@@ -80,10 +120,10 @@ namespace Synology.FileStation
                 { "_sid", _sid },
                 { "offset", $"{offset}" },
                 { "limit", $"{limit}" },
-                { "sort_by", sortBy },
-                { "sort_direction", sortDirection },
+                { "sort_by", sortBy.GetValue() },
+                { "sort_direction", sortDirection.GetValue() },
                 { "onlywritable", $"{onlyWritable}" },
-                { "additional", $"[{String.Join(",", additional ?? new string [0])}]" },
+                { "additional", $"[\"{String.Join("\",\"", additional ?? new string [0])}\"]" },
                 { "action", "list" },
                 { "check_dir", "true" },
                 { "filetype", fileType },
@@ -95,10 +135,23 @@ namespace Synology.FileStation
             return await HandleResponseAsync<SharesModel>(response);
         }
 
-        public async Task<DataModel<FilesModel>> ListAsync(string path, int offset = 0, int limit = 0, string sortBy = "name", string sortDirection = "asc", string fileType = "all", bool onlyWritable = false, string[] additional = null)
+        /// <summary>
+        /// Fetch a list of files and folders at the specified 'path'.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <param name="sortBy"></param>
+        /// <param name="sortDirection"></param>
+        /// <param name="fileType"></param>
+        /// <param name="onlyWritable"></param>
+        /// <param name="additional"></param>
+        /// <returns></returns>
+        public async Task<DataModel<FilesModel>> ListAsync(string path, int offset = 0, int limit = 0, SortBy sortBy = SortBy.Name, SortDirection sortDirection = SortDirection.Ascending, string fileType = "all", bool onlyWritable = false, string[] additional = null)
         {
             if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(path));
 
+            _logger.LogDebug($"Making HTTP request to fetch a list");
             if (String.IsNullOrWhiteSpace(_sid)) await AuthenticateAsync();
             var values = new Dictionary<string, string>()
             {
@@ -108,10 +161,10 @@ namespace Synology.FileStation
                 { "_sid", _sid },
                 { "offset", $"{offset}" },
                 { "limit", $"{limit}" },
-                { "sort_by", sortBy },
-                { "sort_direction", sortDirection },
+                { "sort_by", sortBy.GetValue() },
+                { "sort_direction", sortDirection.GetValue() },
                 { "onlywritable", $"{onlyWritable}" },
-                { "additional", $"[{String.Join(",", additional ?? new string [0])}]" },
+                { "additional", $"[\"{String.Join("\",\"", additional ?? new string [0])}\"]" },
                 { "action", "list" },
                 { "check_dir", "true" },
                 { "filetype", fileType },
@@ -123,10 +176,18 @@ namespace Synology.FileStation
             return await HandleResponseAsync<FilesModel>(response);
         }
 
-        public async Task<HttpResponseMessage> ThumbAsync(string path, string size = "small", int rotate = 0)
+        /// <summary>
+        /// Fetch a thumbnail for the file at the specified 'path'.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="size"></param>
+        /// <param name="rotate"></param>
+        /// <returns></returns>
+        public async Task<HttpResponseMessage> ThumbAsync(string path, ThumbSize size = ThumbSize.Small, int rotate = 0)
         {
             if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(path));
 
+            _logger.LogDebug($"Making HTTP request to fetch a thumbnail");
             if (String.IsNullOrWhiteSpace(_sid)) await AuthenticateAsync();
             var query = new Dictionary<string, string>()
             {
@@ -134,7 +195,7 @@ namespace Synology.FileStation
                 { "version", "2" },
                 { "method", "get" },
                 { "_sid", _sid },
-                { "size", size },
+                { "size", size.GetValue() },
                 { "rotate", $"{rotate}" },
                 { "path", path },
             };
@@ -142,11 +203,20 @@ namespace Synology.FileStation
             var form = new FormUrlEncodedContent(query);
             return await _client.PostAsync(Path("entry"), form);
         }
+
+        /// <summary>
+        /// Upload a new file.
+        /// </summary>
+        /// <param name="pathAndFile"></param>
+        /// <param name="file"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public async Task<DataModel<UploadModel>> UploadAsync(string pathAndFile, byte[] file, bool overwrite = false)
         {
             if (String.IsNullOrWhiteSpace(pathAndFile)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(pathAndFile));
             if (file == null || file.Length == 0) throw new ArgumentException($"Argument cannot be null or empty.", nameof(file));
 
+            _logger.LogDebug($"Making HTTP request to upload file");
             if (String.IsNullOrWhiteSpace(_sid)) await AuthenticateAsync();
             var path = System.IO.Path.GetFullPath(pathAndFile);
             var fileName = System.IO.Path.GetFileName(pathAndFile);
@@ -175,10 +245,17 @@ namespace Synology.FileStation
             return await HandleResponseAsync<UploadModel>(response);
         }
 
+        /// <summary>
+        /// Download the file at the specified 'path'.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="mode"></param>
+        /// <returns></returns>
         public async Task<HttpResponseMessage> DownloadAsync(string path, string mode = "download")
         {
             if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(path));
 
+            _logger.LogDebug($"Making HTTP request to download file");
             if (String.IsNullOrWhiteSpace(_sid)) await AuthenticateAsync();
             var values = new Dictionary<string, string>()
             {
@@ -194,10 +271,17 @@ namespace Synology.FileStation
             return await _client.PostAsync(Path("entry"), form);
         }
 
+        /// <summary>
+        /// Delete the file at the specified 'path'.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="recursive"></param>
+        /// <returns></returns>
         public async Task<DataModel<string>> DeleteAsync(string path, bool recursive = false)
         {
             if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(path));
 
+            _logger.LogDebug($"Making HTTP request to delete item");
             var query = new Dictionary<string, string>()
             {
                 { "api", "SYNO.FileStation.Delete" },
@@ -214,17 +298,32 @@ namespace Synology.FileStation
         #endregion
 
         #region Helpers
+        /// <summary>
+        /// Create the API endpoint path.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private string Path(string name)
         {
             return $"{_options.HostUrl}/webapi/{name}.cgi";
         }
 
+        /// <summary>
+        /// Make an HTTP request to fetch a session ID for authentication.
+        /// </summary>
+        /// <returns></returns>
         private async Task AuthenticateAsync()
         {
-            var result = await LoginAsync(_options.Username, _options.Password);
+            var result = await LoginAsync(_options.Username, _options.Password); // TODO: Need to handle a session timeout.
             _sid = result.Data.Sid;
         }
 
+        /// <summary>
+        /// Deserialize the response and handle failed requests.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="response"></param>
+        /// <returns></returns>
         private async Task<DataModel<T>> HandleResponseAsync<T>(HttpResponseMessage response)
         {
             if (response.IsSuccessStatusCode)
@@ -239,6 +338,11 @@ namespace Synology.FileStation
             throw new HttpClientRequestException(response);
         }
 
+        /// <summary>
+        /// Extract the error information from the code.
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
         private string ErrorDescription(int code)
         {
             return code switch

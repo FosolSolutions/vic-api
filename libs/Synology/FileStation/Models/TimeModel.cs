@@ -1,12 +1,27 @@
-﻿namespace Synology.FileStation.Models
+﻿using Fosol.Core.Http.Converters;
+using System;
+using System.Text.Json.Serialization;
+
+namespace Synology.FileStation.Models
 {
     public class TimeModel
     {
         #region Properties
-        public int ATime { get; set; }
-        public int CrTime { get; set; }
-        public int CTime { get; set; }
-        public int MTime { get; set; }
+        [JsonConverter(typeof(MicrosecondEpochJsonConverter))]
+        [JsonPropertyName("atime")]
+        public DateTime AccessedOn { get; set; }
+
+        [JsonConverter(typeof(MicrosecondEpochJsonConverter))]
+        [JsonPropertyName("crtime")]
+        public DateTime CreatedOn { get; set; }
+
+        [JsonConverter(typeof(MicrosecondEpochJsonConverter))]
+        [JsonPropertyName("ctime")]
+        public DateTime ChangedOn { get; set; }
+
+        [JsonConverter(typeof(MicrosecondEpochJsonConverter))]
+        [JsonPropertyName("mtime")]
+        public DateTime UpdatedOn { get; set; }
         #endregion
     }
 }

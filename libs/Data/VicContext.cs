@@ -21,6 +21,21 @@ namespace Vic.Data
         /// get/set - Pages provide a way to dynamically control the content of each page.
         /// </summary>
         public DbSet<Page> Pages { get; set; }
+
+        /// <summary>
+        /// get/set - Items represent files, folders or anything else.
+        /// </summary>
+        public DbSet<Item> Items { get; set; }
+
+        /// <summary>
+        /// get/set - Tags are a way of identifying related items.
+        /// </summary>
+        public DbSet<Tag> Tags { get; set; }
+
+        /// <summary>
+        /// get/set - The many-to-many relationship between items and tags.
+        /// </summary>
+        public DbSet<ItemTag> ItemTags { get; set; }
         #endregion
 
         #region Constructors

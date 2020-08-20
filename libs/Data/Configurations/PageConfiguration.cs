@@ -17,10 +17,11 @@ namespace Vic.Data.Configurations
             builder.HasKey(m => m.Id);
             builder.Property(m => m.Id).ValueGeneratedOnAdd();
 
-
             builder.Property(m => m.Name).IsRequired().HasMaxLength(100);
             builder.Property(m => m.Path).IsRequired().HasMaxLength(500);
             builder.Property(m => m.Body).IsRequired();
+
+            builder.HasIndex(m => m.Path).IsUnique();
 
             base.Configure(builder);
         }

@@ -1,34 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Synology.FileStation;
+using Synology.FileStation.Models;
+using Vic.Api.Helpers.Services;
 using Vic.Api.Models;
 using Vic.Data;
 
 namespace Vic.Api.Controllers
 {
+    /// <summary>
+    /// FileStationController class, provides a controller for FileStation endpoints.
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class FileStationController : ControllerBase
     {
         #region Variables
-        private readonly VicContext _context;
-        private readonly IFileStationApi _api;
-        private readonly ILogger _logger;
+        private readonly IFileStationApi _fileStation;
+        private readonly IDataService _service;
         #endregion
 
         #region Constructors
-
-        public FileStationController(VicContext context, IFileStationApi api, ILogger<FileStationController> logger)
+        /// <summary>
+        /// Creates a new instance of a FileStationController object, initializes with specified arguments.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="fileStation"></param>
+        public FileStationController(VicContext context, IFileStationApi fileStation)
         {
-            _context = context;
-            _api = api;
-            _logger = logger;
+            _fileStation = fileStation;
+            _service = new DataService(fileStation, context);
         }
         #endregion
 
@@ -43,9 +46,9 @@ namespace Vic.Api.Controllers
         [HttpGet("shares")]
         public async Task<IActionResult> SharesAsync(string path, int page = 1, int quantity = 0)
         {
-            var result = await _api.ListSharesAsync(path ?? "/", page - 1, quantity);
+            var result = await _fileStation.ListSharesAsync(path ?? "/", page - 1, quantity, SortBy.Name, SortDirection.Ascending, "all", false, new[] { "size", "time" });
 
-            return new JsonResult(new PageModel<FolderModel>(page, result.Data.Total, result.Data.Shares.Select(s => new FolderModel(s))));
+            return new JsonResult(new PageModel<ItemModel>(page, result.Data.Total, result.Data.Shares.Select(s => new ItemModel(s))));
         }
 
         /// <summary>
@@ -58,24 +61,20 @@ namespace Vic.Api.Controllers
         [HttpGet("files")]
         public async Task<IActionResult> FilesAsync(string path, int page = 1, int quantity = 0)
         {
-            // Fetch items from synology.
-            var result = await _api.ListAsync(path ?? "/", page - 1, quantity);
+            var result = await _service.ListAsync(path, page, quantity, SortBy.Modified, SortDirection.Descending, "all", false, new[] { "size", "time" });
 
-            // Fetch item information from database.
-            var pages = _context.Pages.ToList();
-
-            return new JsonResult(new PageModel<FolderModel>(page, result.Data.Total, result.Data.Files.Select(s => new FolderModel(s))));
+            return new JsonResult(result);
         }
 
         /// <summary>
-        /// Fetch a page list of files and folders in the specified 'path'.
+        /// Download the file specified by the 'path'.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
         [HttpGet("files/download")]
         public async Task<IActionResult> DownloadAsync(string path)
         {
-            var response = await _api.DownloadAsync(path);
+            var response = await _fileStation.DownloadAsync(path);
 
             var fileName = response.Content.Headers.ContentDisposition?.FileName ?? Path.GetFileName(path);
             var data = await response.Content.ReadAsStreamAsync();
@@ -84,16 +83,16 @@ namespace Vic.Api.Controllers
         }
 
         /// <summary>
-        /// Fetch a page list of files and folders in the specified 'path'.
+        /// Download a thumbnail of the file for the specified 'path'.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="size"></param>
         /// <param name="rotate"></param>
         /// <returns></returns>
         [HttpGet("files/thumb")]
-        public async Task<IActionResult> ThumbnailAsync(string path, string size = "small", int rotate = 0)
+        public async Task<IActionResult> ThumbnailAsync(string path, ThumbSize size = ThumbSize.Small, int rotate = 0)
         {
-            var response = await _api.ThumbAsync(path, size, rotate);
+            var response = await _fileStation.ThumbAsync(path, size, rotate);
 
             var fileName = response.Content.Headers.ContentDisposition?.FileName ?? Path.GetFileName(path);
             var data = await response.Content.ReadAsStreamAsync();
