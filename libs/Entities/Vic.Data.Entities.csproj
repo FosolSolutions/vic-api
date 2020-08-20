@@ -2,19 +2,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <OutputType>Library</OutputType>
     <LangVersion>8.0</LangVersion>
+    <OutputType>Library</OutputType>
     <Version>1.0.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <ProjectGuid>df1fb25c-20da-4495-a878-9da8f8336031</ProjectGuid>
+    <ProjectGuid>{B2927906-25ED-478A-A8DD-683DFAE31B5E}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
+    <PackageReference Include="DotNetEnv" Version="1.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.7" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Http\Fosol.Core.Http.csproj" />
   </ItemGroup>
 </Project>

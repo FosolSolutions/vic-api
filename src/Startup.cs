@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Synology;
 using Vic.Api.Helpers.Middleware;
+using Vic.Data;
 
 namespace Vic.Api
 {
@@ -48,6 +50,7 @@ namespace Vic.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
             services.AddControllers();
             services.AddSynologyFileStation(this.Configuration.GetSection("Synology"));
             services.Configure<JsonSerializerOptions>(options =>
@@ -58,6 +61,15 @@ namespace Vic.Api
                 options.WriteIndented = !String.IsNullOrWhiteSpace(this.Configuration["Serialization:Json:WriteIndented"]) ? Boolean.Parse(this.Configuration["Serialization:Json:WriteIndented"]) : false;
                 //options.Converters.Add(new JsonStringEnumConverter());
                 //options.Converters.Add(new Int32ToStringJsonConverter());
+            });
+            services.AddVicContext(this.Configuration, options =>
+            {
+                if (!this.Environment.IsProduction())
+                {
+                    var debugLoggerFactory = LoggerFactory.Create(builder => { builder.AddDebug(); });
+                    options.UseLoggerFactory(debugLoggerFactory);
+                    options.EnableSensitiveDataLogging();
+                }
             });
 
             services.AddCors(options =>

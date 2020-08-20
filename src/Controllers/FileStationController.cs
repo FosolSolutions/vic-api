@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Synology.FileStation;
 using Vic.Api.Models;
+using Vic.Data;
 
 namespace Vic.Api.Controllers
 {
@@ -16,14 +17,16 @@ namespace Vic.Api.Controllers
     public class FileStationController : ControllerBase
     {
         #region Variables
+        private readonly VicContext _context;
         private readonly IFileStationApi _api;
         private readonly ILogger _logger;
         #endregion
 
         #region Constructors
 
-        public FileStationController(IFileStationApi api, ILogger<FileStationController> logger)
+        public FileStationController(VicContext context, IFileStationApi api, ILogger<FileStationController> logger)
         {
+            _context = context;
             _api = api;
             _logger = logger;
         }
@@ -55,7 +58,11 @@ namespace Vic.Api.Controllers
         [HttpGet("files")]
         public async Task<IActionResult> FilesAsync(string path, int page = 1, int quantity = 0)
         {
+            // Fetch items from synology.
             var result = await _api.ListAsync(path ?? "/", page - 1, quantity);
+
+            // Fetch item information from database.
+            var pages = _context.Pages.ToList();
 
             return new JsonResult(new PageModel<FolderModel>(page, result.Data.Total, result.Data.Files.Select(s => new FolderModel(s))));
         }

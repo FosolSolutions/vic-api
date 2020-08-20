@@ -12,6 +12,7 @@ certs/
 *.userosscache
 *.sln.docstates
 *.env
+connectionstrings*.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
