@@ -11,6 +11,12 @@ namespace Vic.Api.Models
     {
         #region Properties
         /// <summary>
+        /// get/set - Primary key to the item in the database.
+        /// </summary>
+        /// <value></value>
+        public int? Id { get; set; }
+
+        /// <summary>
         /// get/set - Display name for the item.
         /// </summary>
         public string Name { get; set; }
@@ -76,7 +82,8 @@ namespace Vic.Api.Models
         /// <param name="item"></param>
         public ItemModel(Item item)
         {
-            this.Name = item?.Name ?? throw new ArgumentNullException(nameof(item));
+            this.Id = item?.Id ?? throw new ArgumentNullException(nameof(item));
+            this.Name = item.Name;
             this.Path = item.Path;
             this.IsFolder = item.IsFolder;
             this.Author = item.Author;

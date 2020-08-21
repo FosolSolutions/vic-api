@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Linq;
 using Vic.Data.Configurations;
@@ -36,6 +37,11 @@ namespace Vic.Data
         /// get/set - The many-to-many relationship between items and tags.
         /// </summary>
         public DbSet<ItemTag> ItemTags { get; set; }
+
+        /// <summary>
+        /// get/set - Users who have accounts.
+        /// </summary>
+        public DbSet<User> Users { get; set; }
         #endregion
 
         #region Constructors
@@ -72,6 +78,11 @@ namespace Vic.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyAllConfigurations(typeof(PageConfiguration), this);
+
+            var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+                v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+            modelBuilder.UseValueConverterForType(typeof(DateTime), dateTimeConverter);
 
             base.OnModelCreating(modelBuilder);
         }

@@ -60,7 +60,8 @@ namespace Vic.Data.Migrations
         protected void PreDeploy(MigrationBuilder migrationBuilder)
         {
             if (migrationBuilder == null) throw new ArgumentNullException(nameof(migrationBuilder));
-            migrationBuilder.Sql($"PRINT 'PreDeploy Scripts'");
+            //migrationBuilder.Sql($"PRINT 'PreDeploy Scripts'");
+            migrationBuilder.Sql($"SELECT 'PreDeploy Scripts'");
 
             ScriptDeploy(migrationBuilder, Path.Combine(this.DefaultMigrationsPath, this.Version, "PreDeploy"));
         }
@@ -72,7 +73,7 @@ namespace Vic.Data.Migrations
         protected void PostDeploy(MigrationBuilder migrationBuilder)
         {
             if (migrationBuilder == null) throw new ArgumentNullException(nameof(migrationBuilder));
-            migrationBuilder.Sql($"PRINT 'PostDeploy Scripts'");
+            //migrationBuilder.Sql($"PRINT 'PostDeploy Scripts'");
 
             ScriptDeploy(migrationBuilder, Path.Combine(this.DefaultMigrationsPath, this.Version, "PostDeploy"));
         }
@@ -89,7 +90,7 @@ namespace Vic.Data.Migrations
 
             if (!Directory.Exists(path) && !File.Exists(path))
             {
-                migrationBuilder.Sql($"PRINT 'Script does not exist {path}.'");
+                //migrationBuilder.Sql($"PRINT 'Script does not exist {path}.'");
                 return;
             }
 
@@ -115,7 +116,7 @@ namespace Vic.Data.Migrations
         /// <param name="path"></param>
         private void ExecuteScript(MigrationBuilder migrationBuilder, string path)
         {
-            migrationBuilder.Sql($"PRINT '---------------> {path}'");
+            //migrationBuilder.Sql($"PRINT '---------------> {path}'");
             var sql = File.ReadAllText(path).Trim();
 
             if (!String.IsNullOrEmpty(sql))

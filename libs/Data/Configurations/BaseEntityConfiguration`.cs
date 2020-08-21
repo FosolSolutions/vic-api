@@ -12,11 +12,11 @@ namespace Vic.Data.Configurations
         #region Methods
         protected void BaseConfigure(EntityTypeBuilder<TBase> builder)
         {
-            builder.Property(m => m.CreatedOn).HasColumnType("DATETIME ");
-            builder.Property(m => m.CreatedOn).HasDefaultValueSql("UTC_TIMESTAMP()");
-            builder.Property(m => m.UpdatedOn).HasColumnType("DATETIME ");
+            builder.Property(m => m.CreatedOn).HasColumnType("DATETIME");
+            builder.Property(m => m.CreatedOn).HasColumnType("DATETIME").HasDefaultValueSql("UTC_TIMESTAMP()");
+            builder.Property(m => m.UpdatedOn).HasColumnType("DATETIME");
         }
-
+            
         public virtual void Configure(EntityTypeBuilder<TBase> builder)
         {
             BaseConfigure(builder);

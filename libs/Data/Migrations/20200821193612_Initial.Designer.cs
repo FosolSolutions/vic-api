@@ -9,7 +9,7 @@ using Vic.Data;
 namespace Vic.Data.Migrations
 {
     [DbContext(typeof(VicContext))]
-    [Migration("20200820155136_Initial")]
+    [Migration("20200821193612_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,7 +35,7 @@ namespace Vic.Data.Migrations
 
                     b.Property<DateTime>("CreatedOn")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME ")
+                        .HasColumnType("DATETIME")
                         .HasDefaultValueSql("UTC_TIMESTAMP()");
 
                     b.Property<string>("Description")
@@ -62,7 +62,7 @@ namespace Vic.Data.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("UpdatedOn")
-                        .HasColumnType("DATETIME ");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("Id");
 
@@ -87,11 +87,11 @@ namespace Vic.Data.Migrations
 
                     b.Property<DateTime>("CreatedOn")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME ")
+                        .HasColumnType("DATETIME")
                         .HasDefaultValueSql("UTC_TIMESTAMP()");
 
                     b.Property<DateTime>("UpdatedOn")
-                        .HasColumnType("DATETIME ");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("ItemId", "TagId");
 
@@ -112,7 +112,7 @@ namespace Vic.Data.Migrations
 
                     b.Property<DateTime>("CreatedOn")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME ")
+                        .HasColumnType("DATETIME")
                         .HasDefaultValueSql("UTC_TIMESTAMP()");
 
                     b.Property<bool>("IsEnabled")
@@ -132,7 +132,7 @@ namespace Vic.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedOn")
-                        .HasColumnType("DATETIME ");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("Id");
 
@@ -150,15 +150,63 @@ namespace Vic.Data.Migrations
 
                     b.Property<DateTime>("CreatedOn")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME ")
+                        .HasColumnType("DATETIME")
                         .HasDefaultValueSql("UTC_TIMESTAMP()");
 
                     b.Property<DateTime>("UpdatedOn")
-                        .HasColumnType("DATETIME ");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("Id");
 
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("Vic.Data.Entities.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("DATETIME")
+                        .HasDefaultValueSql("UTC_TIMESTAMP()");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasMaxLength(50);
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasMaxLength(50);
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasMaxLength(50);
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasMaxLength(50);
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasMaxLength(50);
+
+                    b.Property<DateTime>("UpdatedOn")
+                        .HasColumnType("DATETIME");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasMaxLength(50);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Vic.Data.Entities.Item", b =>

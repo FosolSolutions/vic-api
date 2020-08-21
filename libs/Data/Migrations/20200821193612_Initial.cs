@@ -4,18 +4,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Vic.Data.Migrations
 {
-    public partial class Initial : Migration
+    public partial class Initial : SeedMigration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            PreDeploy(migrationBuilder);
+
             migrationBuilder.CreateTable(
                 name: "Items",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CreatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
-                    UpdatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
+                    UpdatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
                     Path = table.Column<string>(maxLength: 500, nullable: false),
                     Description = table.Column<string>(maxLength: 500, nullable: true),
@@ -42,8 +44,8 @@ namespace Vic.Data.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CreatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
-                    UpdatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
+                    UpdatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
                     Path = table.Column<string>(maxLength: 500, nullable: false),
                     Body = table.Column<string>(nullable: false),
@@ -60,12 +62,32 @@ namespace Vic.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(maxLength: 25, nullable: false),
-                    CreatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
-                    UpdatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false)
+                    CreatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
+                    UpdatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tags", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
+                    UpdatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false),
+                    Username = table.Column<string>(maxLength: 50, nullable: false),
+                    Email = table.Column<string>(maxLength: 50, nullable: false),
+                    Password = table.Column<string>(maxLength: 50, nullable: false),
+                    FirstName = table.Column<string>(maxLength: 50, nullable: true),
+                    LastName = table.Column<string>(maxLength: 50, nullable: true),
+                    DisplayName = table.Column<string>(maxLength: 50, nullable: true),
+                    IsEnabled = table.Column<bool>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -74,8 +96,8 @@ namespace Vic.Data.Migrations
                 {
                     ItemId = table.Column<int>(nullable: false),
                     TagId = table.Column<string>(maxLength: 25, nullable: false),
-                    CreatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
-                    UpdatedOn = table.Column<DateTime>(type: "DATETIME ", nullable: false)
+                    CreatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false, defaultValueSql: "UTC_TIMESTAMP()"),
+                    UpdatedOn = table.Column<DateTime>(type: "DATETIME", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -118,6 +140,8 @@ namespace Vic.Data.Migrations
                 table: "Pages",
                 column: "Path",
                 unique: true);
+
+            PostDeploy(migrationBuilder);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -127,6 +151,9 @@ namespace Vic.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Pages");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Items");

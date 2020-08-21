@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Vic.Api.Models;
 using Vic.Data;
 using Vic.Data.Entities;
 
-namespace Vic.Api.Controllers
+namespace Vic.Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// MetadataController class, provides a controller for metadata endpoints.
+    /// ItemsController class, provides a controller for item metadata endpoints.
     /// </summary>
+    [Authorize]
     [ApiController]
-    [Route("[controller]")]
-    public class MetadataController : ControllerBase
+    [Area("admin")]
+    [Route("[area]/[controller]")]
+    public class ItemsController : ControllerBase
     {
         #region Variables
         private readonly VicContext _context;
@@ -20,10 +23,10 @@ namespace Vic.Api.Controllers
 
         #region Constructors
         /// <summary>
-        /// Creates a new instance of a MetadataController object, initializes with specified arguments.
+        /// Creates a new instance of a ItemsController object, initializes with specified arguments.
         /// </summary>
         /// <param name="context"></param>
-        public MetadataController(VicContext context)
+        public ItemsController(VicContext context)
         {
             _context = context;
         }
@@ -35,7 +38,7 @@ namespace Vic.Api.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("items/{id}")]
+        [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
             var item = _context.Items.FirstOrDefault(i => i.Id == id) ?? throw new ArgumentOutOfRangeException("Item does not exist");
@@ -48,7 +51,7 @@ namespace Vic.Api.Controllers
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        [HttpGet("items/one")]
+        [HttpGet("one")]
         public IActionResult Get(string path)
         {
             var item = _context.Items.FirstOrDefault(i => i.Path == path) ?? throw new ArgumentOutOfRangeException("Item does not exist");
@@ -61,7 +64,7 @@ namespace Vic.Api.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [HttpPost("items")]
+        [HttpPost()]
         public IActionResult Add(ItemModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
@@ -74,8 +77,8 @@ namespace Vic.Api.Controllers
                 Name = new System.IO.DirectoryInfo(path).Name,
                 Path = path,
                 PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
-                CreatedOn = model.CreatedOn ?? DateTime.UtcNow,
-                UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow
+                CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
+                UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow
             };
 
             var item = new Item()
@@ -85,8 +88,8 @@ namespace Vic.Api.Controllers
                 Description = model.Description,
                 Author = model.Author,
                 PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
-                CreatedOn = model.CreatedOn ?? DateTime.UtcNow,
-                UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow,
+                CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
+                UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
                 Parent = parent
             };
 
@@ -102,7 +105,7 @@ namespace Vic.Api.Controllers
         /// <param name="id"></param>
         /// <param name="model"></param>
         /// <returns></returns>
-        [HttpPut("items/{id}")]
+        [HttpPut("{id}")]
         public IActionResult Update(int id, ItemModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
@@ -115,8 +118,8 @@ namespace Vic.Api.Controllers
                 Name = new System.IO.DirectoryInfo(path).Name,
                 Path = path,
                 PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
-                CreatedOn = model.CreatedOn ?? DateTime.UtcNow,
-                UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow
+                CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
+                UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow
             };
 
             var item = _context.Items.FirstOrDefault(i => i.Id == id) ?? throw new ArgumentOutOfRangeException(nameof(id), "Item does not exist.");
@@ -125,8 +128,8 @@ namespace Vic.Api.Controllers
             item.Path = model.Path;
             item.Author = model.Author;
             item.PublishedOn = model.PublishedOn.Value.ToUniversalTime();
-            item.CreatedOn = model.CreatedOn ?? DateTime.UtcNow;
-            item.UpdatedOn = model.UpdatedOn ?? DateTime.UtcNow;
+            item.CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow;
+            item.UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow;
             item.Parent = parent;
 
             if (parent.Id == 0) _context.Add(parent);
@@ -141,7 +144,7 @@ namespace Vic.Api.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("items/{id}")]
+        [HttpDelete("{id}")]
         public IActionResult Remove(int id)
         {
             var item = _context.Items.FirstOrDefault(i => i.Id == id) ?? throw new ArgumentOutOfRangeException("Item does not exist");

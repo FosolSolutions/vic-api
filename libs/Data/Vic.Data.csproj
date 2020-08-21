@@ -35,6 +35,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Remove=".env" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Migrations\Initial\PreDeploy\" />
   </ItemGroup>
 </Project>

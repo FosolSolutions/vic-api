@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -75,7 +76,12 @@ namespace Vic.Api.Helpers.Middleware
             var message = "An unhandled error has occurred.";
             string details = null;
 
-            if (ex is SecurityTokenException)
+            if (ex is AuthenticationException)
+            {
+                code = HttpStatusCode.Unauthorized;
+                message = "User must login";
+            }
+            else if (ex is SecurityTokenException)
             {
                 code = HttpStatusCode.Unauthorized;
                 message = "The authentication token is invalid.";
@@ -94,6 +100,13 @@ namespace Vic.Api.Helpers.Middleware
             {
                 code = HttpStatusCode.Unauthorized;
                 message = "The authentication token not yet valid.";
+            }
+            else if (ex is ArgumentException)
+            {
+                code = HttpStatusCode.BadRequest;
+                message = "Invalid argument value";
+
+                _logger.LogDebug(ex, "Middleware caught unhandled exception.");
             }
             else if (ex is KeyNotFoundException)
             {
