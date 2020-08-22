@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Vic.Api.Models.Auth;
 using Vic.Data;
 using Vic.Data.Entities;
 
@@ -45,9 +46,14 @@ namespace Vic.Api.Helpers.Authentication
                 ));
         }
 
+        public User FindUser(string username)
+        {
+            return _context.Users.FirstOrDefault(u => u.Username == username) ?? throw new InvalidOperationException("Unable to authenticate user.");
+        }
+
         public User Validate(string username, string password)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Username == username) ?? throw new InvalidOperationException("Unable to authenticate user.");
+            var user = FindUser(username);
 
             var hash = HashPassword(password);
             if (user.Password != hash) throw new InvalidOperationException("Unable to authenticate user.");
@@ -55,19 +61,32 @@ namespace Vic.Api.Helpers.Authentication
             return user;
         }
 
-        public async Task<string> AuthenticateAsync(User user)
+        public async Task<TokenModel> AuthenticateAsync(User user)
         {
-            var claims = new[] { new Claim("id", user.Id.ToString()) };
-            var identity = new ClaimsIdentity(claims, JwtBearerDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            var token = GenerateJwtToken(principal);
+            var claims = new[] 
+            { 
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(ClaimTypes.Surname, user.LastName),
+                new Claim("display_name", user.DisplayName)
+            };
+            var accessToken = GenerateJwtToken(GeneratePrincipal(JwtBearerDefaults.AuthenticationScheme, claims), _options.AccessTokenExpiresIn);
+            var refreshToken = GenerateJwtToken(GeneratePrincipal(JwtBearerDefaults.AuthenticationScheme, new Claim(ClaimTypes.Name, user.Username)), _options.RefreshTokenExpiresIn);
 
-            _httpContext.HttpContext.Response.Cookies.Append(_options.Cookie.Name, token);
+            //_httpContext.HttpContext.Response.Cookies.Append(_options.Cookie.Name, token);
             //await _httpContext.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-            return await Task.FromResult(token);
+            return await Task.FromResult(new TokenModel(accessToken, _options.AccessTokenExpiresIn, refreshToken, _options.RefreshTokenExpiresIn, _options.DefaultScope));
         }
 
-        private string GenerateJwtToken(ClaimsPrincipal user)
+        private ClaimsPrincipal GeneratePrincipal(string authenticationScheme, params Claim[] claims)
+        {
+            var identity = new ClaimsIdentity(claims, authenticationScheme);
+            return new ClaimsPrincipal(identity);
+        }
+
+        private string GenerateJwtToken(ClaimsPrincipal user, TimeSpan expiresIn)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_options.Secret);
@@ -76,7 +95,7 @@ namespace Vic.Api.Helpers.Authentication
                 Issuer = _options.Issuer,
                 Audience = _options.Audience,
                 Subject = user.Identity as ClaimsIdentity,
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.Add(expiresIn),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

@@ -1,4 +1,4 @@
-﻿using Vic.Data.Entities;
+﻿using System;
 
 namespace Vic.Api.Models.Auth
 {
@@ -8,23 +8,43 @@ namespace Vic.Api.Models.Auth
     public class TokenModel
     {
         #region Properties
-        /// <summary>
-        /// get/set - The user's display name.
-        /// </summary>
-        public string DisplayName { get; set; }
 
         /// <summary>
         /// get/set - The JWT token.
         /// </summary>
         public string AccessToken { get; set; }
+
+        /// <summary>
+        /// get/set - Number of seconds until the access token expires.
+        /// </summary>
+        public TimeSpan ExpiresIn { get; set; }
+
+        /// <summary>
+        /// get/set - The JWT refresh token.
+        /// </summary>
+        public string RefreshToken { get; set; }
+
+        /// <summary>
+        /// get/set - Number of seconds until the refresh token expires.
+        /// </summary>
+        public TimeSpan RefreshExpiresIn { get; set; }
+
+        /// <summary>
+        /// get/set - The scope of the token request.
+        /// </summary>
+        public string Scope { get; set; }
         #endregion
 
         #region Constructors
         public TokenModel() { }
 
-        public TokenModel(User user)
+        public TokenModel(string accessToken, TimeSpan expiresIn, string refreshToken, TimeSpan refreshExpiresIn, string scope)
         {
-            this.DisplayName = user.DisplayName ?? user.Username;
+            this.AccessToken = accessToken;
+            this.ExpiresIn = expiresIn;
+            this.RefreshToken = refreshToken;
+            this.RefreshExpiresIn = refreshExpiresIn;
+            this.Scope = scope;
         }
         #endregion
     }

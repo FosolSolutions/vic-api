@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Vic.Api.Helpers.Authentication;
 using Vic.Api.Models.Auth;
@@ -34,26 +32,24 @@ namespace Vic.Api.Controllers
         /// Authenticate the user and return a JWT token.
         /// </summary>
         /// <returns></returns>
-        [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync(LoginModel login)
+        [HttpPost("token")]
+        public async Task<IActionResult> TokenAsync(LoginModel login)
         {
             var user = _auth.Validate(login.Username, login.Password);
 
-            return new JsonResult(new TokenModel(user)
-            {
-                AccessToken = await _auth.AuthenticateAsync(user)
-            });
+            return new JsonResult(await _auth.AuthenticateAsync(user));
         }
 
         /// <summary>
-        /// Logout and delete cookie and token.
+        /// Refresh the access token if the refresh token is valid.
         /// </summary>
         /// <returns></returns>
-        [HttpPut("logout")]
-        public async Task<IActionResult> LogoutAsync()
+        [HttpPost("refresh")]
+        public async Task<IActionResult> RefreshTokenAsync()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return new JsonResult(new { Success = true });
+            var username = User.Identity.Name;
+            var user = _auth.FindUser(username);
+            return new JsonResult(await _auth.AuthenticateAsync(user));
         }
         #endregion
     }

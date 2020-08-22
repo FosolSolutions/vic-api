@@ -126,21 +126,15 @@ namespace Vic.Api
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Secret)),
                         ClockSkew = TimeSpan.Zero
                     };
-                    options.Events = new JwtBearerEvents()
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            context.Token = context.Request.Cookies[config.Cookie.Name];
-                            return Task.CompletedTask;
-                        }
-                    };
+                    //options.Events = new JwtBearerEvents()
+                    //{
+                    //    OnMessageReceived = context =>
+                    //    {
+                    //        context.Token = context.Request.Cookies[config.Cookie.Name];
+                    //        return Task.CompletedTask;
+                    //    }
+                    //};
                 });
-                //.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-                //{
-                //    options.Cookie.Name = config.Cookie.Name;
-                //    options.LoginPath = "/login";
-                //    options.Cookie.SameSite = SameSiteMode.Strict;
-                //});
 
             if (this.Environment.IsDevelopment())
             {

@@ -1,4 +1,6 @@
-﻿namespace Vic.Api.Helpers.Authentication
+﻿using System;
+
+namespace Vic.Api.Helpers.Authentication
 {
     public class VicAuthenticationOptions
     {
@@ -9,6 +11,9 @@
         public string Audience { get; set; }
         public string Secret { get; set; }
         public CookieOptions Cookie { get; set; }
+        public TimeSpan AccessTokenExpiresIn { get; set; } = new TimeSpan(0, 1, 0);
+        public TimeSpan RefreshTokenExpiresIn { get; set; } = new TimeSpan(1, 0, 0);
+        public string DefaultScope { get; set; } = "profile";
         #endregion
     }
 }
