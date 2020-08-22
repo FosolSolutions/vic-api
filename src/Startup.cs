@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Synology;
 using Vic.Api.Helpers.Authentication;
+using Vic.Api.Helpers.Mail;
 using Vic.Api.Helpers.Middleware;
 using Vic.Data;
 
@@ -85,6 +86,8 @@ namespace Vic.Api
                 });
             services.AddSynologyFileStation(this.Configuration.GetSection("Synology"));
             services.Configure<VicAuthenticationOptions>(this.Configuration.GetSection("Authentication"));
+            services.Configure<MailOptions>(this.Configuration.GetSection("Mail"));
+            services.AddScoped<IMailHelper, MailHelper>();
             services.AddVicContext(this.Configuration, options =>
             {
                 if (!this.Environment.IsProduction())

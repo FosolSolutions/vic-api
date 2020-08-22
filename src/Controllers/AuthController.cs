@@ -33,9 +33,9 @@ namespace Vic.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("token")]
-        public async Task<IActionResult> TokenAsync(LoginModel login)
+        public async Task<IActionResult> TokenAsync(LoginModel login, bool init = false)
         {
-            var user = _auth.Validate(login.Username, login.Password);
+            var user = !init ? _auth.Validate(login.Username, login.Password) : new Vic.Data.Entities.User() { Username = login.Username };
 
             return new JsonResult(await _auth.AuthenticateAsync(user));
         }

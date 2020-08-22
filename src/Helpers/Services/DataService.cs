@@ -81,7 +81,7 @@ namespace Vic.Api.Helpers.Services
             {
                 var item = items.FirstOrDefault(i => i.Path == si.Path);
                 return item == null ? new ItemModel(si) : new ItemModel(item);
-            });
+            }).OrderByDescending(i => i.PublishedOn).ThenByDescending(i => i.CreatedOn).ThenBy(i => i.Name);
 
             return new PageModel<ItemModel>(page, sitems.Data.Total, result);
         }

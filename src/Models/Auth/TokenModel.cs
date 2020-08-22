@@ -17,7 +17,7 @@ namespace Vic.Api.Models.Auth
         /// <summary>
         /// get/set - Number of seconds until the access token expires.
         /// </summary>
-        public TimeSpan ExpiresIn { get; set; }
+        public double ExpiresIn { get; set; }
 
         /// <summary>
         /// get/set - The JWT refresh token.
@@ -27,7 +27,7 @@ namespace Vic.Api.Models.Auth
         /// <summary>
         /// get/set - Number of seconds until the refresh token expires.
         /// </summary>
-        public TimeSpan RefreshExpiresIn { get; set; }
+        public double RefreshExpiresIn { get; set; }
 
         /// <summary>
         /// get/set - The scope of the token request.
@@ -41,9 +41,9 @@ namespace Vic.Api.Models.Auth
         public TokenModel(string accessToken, TimeSpan expiresIn, string refreshToken, TimeSpan refreshExpiresIn, string scope)
         {
             this.AccessToken = accessToken;
-            this.ExpiresIn = expiresIn;
+            this.ExpiresIn = expiresIn.TotalSeconds;
             this.RefreshToken = refreshToken;
-            this.RefreshExpiresIn = refreshExpiresIn;
+            this.RefreshExpiresIn = refreshExpiresIn.TotalSeconds;
             this.Scope = scope;
         }
         #endregion
