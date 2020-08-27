@@ -28,9 +28,12 @@ namespace Vic.Api
         /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-
-            DotNetEnv.Env.Load();
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            if (env != "VS")
+                DotNetEnv.Env.Load();
+            else
+                DotNetEnv.Env.Load(".env.vs");
             var config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Synology.FileStation;
 using Vic.Api.Models;
 using Vic.Data;
 using Vic.Data.Entities;
@@ -19,6 +21,7 @@ namespace Vic.Api.Areas.Admin.Controllers
     {
         #region Variables
         private readonly VicContext _context;
+        private readonly IFileStationApi _fileStation;
         #endregion
 
         #region Constructors
@@ -26,9 +29,11 @@ namespace Vic.Api.Areas.Admin.Controllers
         /// Creates a new instance of a ItemsController object, initializes with specified arguments.
         /// </summary>
         /// <param name="context"></param>
-        public ItemsController(VicContext context)
+        /// <param name="fileStation"></param>
+        public ItemsController(VicContext context, IFileStationApi fileStation)
         {
             _context = context;
+            _fileStation = fileStation;
         }
         #endregion
 
@@ -142,10 +147,13 @@ namespace Vic.Api.Areas.Admin.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("{id}")]
-        public IActionResult Remove(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> RemoveAsync(int id)
         {
             var item = _context.Items.FirstOrDefault(i => i.Id == id) ?? throw new ArgumentOutOfRangeException("Item does not exist");
+
+            await _fileStation.DeleteAsync(item.Path, false);
+
             _context.Items.Remove(item);
             _context.SaveChanges();
 

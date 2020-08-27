@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Synology.FileStation;
 using Synology.FileStation.Models;
@@ -98,6 +99,23 @@ namespace Vic.Api.Controllers
             var data = await response.Content.ReadAsStreamAsync();
 
             return File(data, response.Content.Headers.ContentType.MediaType, fileName);
+        }
+
+        /// <summary>
+        /// Fetch the item from the datasource for the specified 'path'.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpDelete("files")]
+        public async Task<IActionResult> RemoveAsync(string path)
+        {
+            await _fileStation.DeleteAsync(path, false);
+
+            return new JsonResult(new ItemModel()
+            {
+                Path = path
+            });
         }
         #endregion
     }

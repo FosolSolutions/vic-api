@@ -2,18 +2,13 @@ using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Synology;
 using Vic.Api.Helpers.Authentication;
@@ -139,7 +134,7 @@ namespace Vic.Api
                     //};
                 });
 
-            if (this.Environment.IsDevelopment())
+            if (!this.Environment.IsProduction())
             {
                 // Ignore invalid SSL certificates.
                 services.AddHttpClient("HttpRequestClient")
@@ -147,7 +142,9 @@ namespace Vic.Api
                     new HttpClientHandler()
                     {
                         ClientCertificateOptions = ClientCertificateOption.Manual,
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                        ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) => {
+                            return HttpClientHandler.DangerousAcceptAnyServerCertificateValidator(sender, cert, chain, errors);
+                        }
                     });
             }
         }

@@ -282,6 +282,7 @@ namespace Synology.FileStation
             if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(path));
 
             _logger.LogDebug($"Making HTTP request to delete item");
+            if (String.IsNullOrWhiteSpace(_sid)) await AuthenticateAsync();
             var query = new Dictionary<string, string>()
             {
                 { "api", "SYNO.FileStation.Delete" },
@@ -291,7 +292,7 @@ namespace Synology.FileStation
                 { "path", path },
                 { "recursive", $"{recursive}" },
             };
-            var url = Path("auth").AddQueryString(query);
+            var url = Path("entry").AddQueryString(query);
             var response = await _client.SendAsync(url);
             return await HandleResponseAsync<string>(response);
         }
