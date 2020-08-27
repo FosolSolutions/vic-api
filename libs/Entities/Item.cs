@@ -33,7 +33,7 @@ namespace Vic.Data.Entities
         /// <summary>
         /// get/set - When this item was published.
         /// </summary>
-        public DateTime PublishedOn {get;set;}
+        public DateTime? PublishedOn { get; set; }
 
         /// <summary>
         /// get/set - The author of this item.

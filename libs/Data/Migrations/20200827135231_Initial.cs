@@ -21,7 +21,7 @@ namespace Vic.Data.Migrations
                     Name = table.Column<string>(maxLength: 100, nullable: false),
                     Path = table.Column<string>(maxLength: 500, nullable: false),
                     Description = table.Column<string>(maxLength: 500, nullable: true),
-                    PublishedOn = table.Column<DateTime>(nullable: false),
+                    PublishedOn = table.Column<DateTime>(nullable: true),
                     Author = table.Column<string>(maxLength: 250, nullable: true),
                     ContentType = table.Column<string>(maxLength: 250, nullable: true),
                     IsFolder = table.Column<bool>(nullable: false),

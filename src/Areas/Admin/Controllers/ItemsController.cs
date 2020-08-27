@@ -68,7 +68,6 @@ namespace Vic.Api.Areas.Admin.Controllers
         public IActionResult Add(ItemModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
-            if (!model.PublishedOn.HasValue) throw new ArgumentException($"Item must have a 'publishedOn' date.", nameof(model));
 
             // Determine if the parent already exists.
             var path = System.IO.Path.GetDirectoryName(model.Path).Replace("\\", "/");
@@ -76,7 +75,7 @@ namespace Vic.Api.Areas.Admin.Controllers
             {
                 Name = new System.IO.DirectoryInfo(path).Name,
                 Path = path,
-                PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
+                PublishedOn = model.PublishedOn?.ToUniversalTime(),
                 CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
                 UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow
             };
@@ -87,7 +86,7 @@ namespace Vic.Api.Areas.Admin.Controllers
                 Path = model.Path,
                 Description = model.Description,
                 Author = model.Author,
-                PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
+                PublishedOn = model.PublishedOn?.ToUniversalTime(),
                 CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
                 UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
                 Parent = parent
@@ -109,7 +108,6 @@ namespace Vic.Api.Areas.Admin.Controllers
         public IActionResult Update(int id, ItemModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
-            if (!model.PublishedOn.HasValue) throw new ArgumentException($"Item must have a 'publishedOn' date.", nameof(model));
 
             // Determine if the parent already exists.
             var path = System.IO.Path.GetDirectoryName(model.Path).Replace("\\", "/");
@@ -117,7 +115,7 @@ namespace Vic.Api.Areas.Admin.Controllers
             {
                 Name = new System.IO.DirectoryInfo(path).Name,
                 Path = path,
-                PublishedOn = model.PublishedOn.Value.ToUniversalTime(),
+                PublishedOn = model.PublishedOn?.ToUniversalTime(),
                 CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow,
                 UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow
             };
@@ -127,7 +125,7 @@ namespace Vic.Api.Areas.Admin.Controllers
             item.Description = model.Description;
             item.Path = model.Path;
             item.Author = model.Author;
-            item.PublishedOn = model.PublishedOn.Value.ToUniversalTime();
+            item.PublishedOn = model.PublishedOn?.ToUniversalTime();
             item.CreatedOn = model.CreatedOn?.ToUniversalTime() ?? DateTime.UtcNow;
             item.UpdatedOn = model.UpdatedOn?.ToUniversalTime() ?? DateTime.UtcNow;
             item.Parent = parent;

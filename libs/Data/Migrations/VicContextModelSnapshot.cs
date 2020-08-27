@@ -56,7 +56,7 @@ namespace Vic.Data.Migrations
                         .HasColumnType("varchar(500) CHARACTER SET utf8mb4")
                         .HasMaxLength(500);
 
-                    b.Property<DateTime>("PublishedOn")
+                    b.Property<DateTime?>("PublishedOn")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("UpdatedOn")

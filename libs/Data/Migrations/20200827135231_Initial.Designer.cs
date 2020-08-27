@@ -9,7 +9,7 @@ using Vic.Data;
 namespace Vic.Data.Migrations
 {
     [DbContext(typeof(VicContext))]
-    [Migration("20200821193612_Initial")]
+    [Migration("20200827135231_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,7 +58,7 @@ namespace Vic.Data.Migrations
                         .HasColumnType("varchar(500) CHARACTER SET utf8mb4")
                         .HasMaxLength(500);
 
-                    b.Property<DateTime>("PublishedOn")
+                    b.Property<DateTime?>("PublishedOn")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("UpdatedOn")
