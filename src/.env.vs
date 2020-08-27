@@ -23,3 +23,5 @@ Mail__Port=587
 Mail__Name=Jamey Pfeffer
 Mail__Username=jamey80@ethereal.email
 Mail__Password=RVGuggfkSe9ekHzVg1
+Mail__FromEmail=contact@victoriabiblestudy.com
+Mail__ContactEmail=jeremymfoster@hotmail.com

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Synology.FileStation;
 using Vic.Api.Models;
@@ -101,6 +104,29 @@ namespace Vic.Api.Areas.Admin.Controllers
             _context.SaveChanges();
 
             return new JsonResult(new ItemModel(item));
+        }
+
+        /// <summary>
+        /// Add the new item to the datasource and upload the file to the NAS.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPost("upload")]
+        public async Task<IActionResult> AddAsync([FromBody] ItemUploadModel model)
+        {
+            if (model == null) throw new ArgumentNullException(nameof(model));
+
+            var itemModel = System.Text.Json.JsonSerializer.Deserialize<ItemModel>(model.Item);
+
+            if (model.File != null && model.File.Length > 0)
+            {
+                using var stream = new MemoryStream();
+                await model.File.CopyToAsync(stream);
+                var data = stream.ToArray();
+                await _fileStation.UploadAsync(itemModel.Path, data);
+            }
+
+            return Add(itemModel);
         }
 
         /// <summary>
