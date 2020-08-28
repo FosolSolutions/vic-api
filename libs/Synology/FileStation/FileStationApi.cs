@@ -1,12 +1,16 @@
 ﻿using Fosol.Core.Http;
 using Fosol.Core.Http.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Synology.FileStation.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Synology.FileStation
@@ -209,9 +213,10 @@ namespace Synology.FileStation
         /// </summary>
         /// <param name="pathAndFile"></param>
         /// <param name="file"></param>
+        /// <param name="contentType"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public async Task<DataModel<UploadModel>> UploadAsync(string pathAndFile, byte[] file, bool overwrite = false)
+        public async Task<DataModel<UploadModel>> UploadAsync(string pathAndFile, byte[] file, string contentType = null, bool overwrite = false)
         {
             if (String.IsNullOrWhiteSpace(pathAndFile)) throw new ArgumentException($"Argument cannot be null, empty or whitespace.", nameof(pathAndFile));
             if (file == null || file.Length == 0) throw new ArgumentException($"Argument cannot be null or empty.", nameof(file));
@@ -221,28 +226,60 @@ namespace Synology.FileStation
             var path = System.IO.Path.GetFullPath(pathAndFile);
             var fileName = System.IO.Path.GetFileName(pathAndFile);
 
-            var query = new Dictionary<string, string>()
-            {
-                { "api", "SYNO.FileStation.Upload" },
-                { "version", "2" },
-                { "method", "upload" },
-                { "_sid", _sid },
-            };
-            var url = Path("entry").AddQueryString(query);
+            var url = Path("entry");
+            var form = new MultipartFormDataContent();
+            AddFormData(form, "api", "SYNO.FileStation.Upload");
+            AddFormData(form, "version", "2");
+            AddFormData(form, "method", "upload");
+            AddFormData(form, "_sid", _sid);
+            AddFormData(form, "overwrite", $"{overwrite}");
+            AddFormData(form, "path", path);
+            AddFormData(form, "create_parents", $"{false}");
+            AddFormData(form, "file", file, fileName);
 
-            var values = new Dictionary<string, string>()
-            {
-                { "overwrite", $"{overwrite}" },
-                { "path", path },
-            };
+            ModifyFormHeader(form);
 
-            var form = new MultipartFormDataContent
-            {
-                new FormUrlEncodedContent(values),
-                { new ByteArrayContent(file, 0, file.Length), "file", fileName }
-            };
             var response = await _client.PostAsync(url, form);
-            return await HandleResponseAsync<UploadModel>(response);
+            var result = await HandleResponseAsync<UploadModel>(response);
+            if (result.Data.BlSkip) throw new HttpClientRequestException("Cannot overwrite existing file.", HttpStatusCode.BadRequest);
+            return result;
+        }
+
+        /// <summary>
+        /// Upload a new file.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="file"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
+        public async Task<DataModel<UploadModel>> UploadAsync(string path, IFormFile file, bool overwrite = false)
+        {
+            if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException("Argument 'path' cannot be null, empty or whitespace.", nameof(path));
+            if (file == null) throw new ArgumentNullException(nameof(file));
+            if (file.Length == 0) throw new ArgumentException("File cannot be empty.", nameof(file));
+
+            _logger.LogDebug($"Making HTTP request to upload file");
+            if (String.IsNullOrWhiteSpace(_sid)) await AuthenticateAsync();
+
+            var url = Path("entry");
+            var form = new MultipartFormDataContent();
+            AddFormData(form, "api", "SYNO.FileStation.Upload");
+            AddFormData(form, "version", "2");
+            AddFormData(form, "method", "upload");
+            AddFormData(form, "_sid", _sid);
+            AddFormData(form, "overwrite", $"{overwrite}");
+            AddFormData(form, "path", path);
+            AddFormData(form, "create_parents", $"{false}");
+            AddFormData(form, "filename", file.FileName);
+            await AddFormDataAsync(form, "file", file);
+
+            ModifyFormHeader(form);
+
+            var response = await _client.PostAsync(url, form);
+
+            var result = await HandleResponseAsync<UploadModel>(response);
+            if (result.Data.BlSkip) throw new HttpClientRequestException("Cannot overwrite existing file.", HttpStatusCode.BadRequest);
+            return result;
         }
 
         /// <summary>
@@ -381,6 +418,65 @@ namespace Synology.FileStation
                 599 => "No such task of the file operation",
                 _ => "Undocumented error"
             };
+        }
+
+        /// <summary>
+        /// Synology incorrectly implemented the boundary, so double quotes needs to be removed.
+        /// </summary>
+        /// <param name="form"></param>
+        private static void ModifyFormHeader(MultipartFormDataContent form)
+        {
+            // The boundary needs to be removed because
+            var boundary = form.Headers.ContentType.Parameters.FirstOrDefault(p => p.Name == "boundary");
+            boundary.Value = boundary.Value.Replace("\"", String.Empty);
+        }
+
+        /// <summary>
+        /// Add the 'value' to the form.
+        /// </summary>
+        /// <param name="form"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        private static void AddFormData(MultipartFormDataContent form, string name, string value)
+        {
+            var content = new StringContent(value);
+            form.Add(content, name);
+            content.Headers.Clear();
+            //content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("text/plain");
+            content.Headers.Add("Content-Disposition", $"form-data; name=\"{name}\"");
+        }
+
+        /// <summary>
+        /// Add the 'file' to the form.
+        /// </summary>
+        /// <param name="form"></param>
+        /// <param name="name"></param>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private async static Task AddFormDataAsync(MultipartFormDataContent form, string name, IFormFile file)
+        {
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream);
+            var data = stream.ToArray();
+            AddFormData(form, name, data, file.FileName);
+        }
+
+        /// <summary>
+        /// Add the 'data' as a file to the form.
+        /// </summary>
+        /// <param name="form"></param>
+        /// <param name="name"></param>
+        /// <param name="data"></param>
+        /// <param name="fileName"></param>
+        /// <param name="contentType"></param>
+        private static void AddFormData(MultipartFormDataContent form, string name, byte[] data, string fileName, string contentType = null)
+        {
+            var content = new ByteArrayContent(data);
+            form.Add(content);
+            content.Headers.Clear();
+            if (!String.IsNullOrWhiteSpace(contentType))
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+            content.Headers.Add("Content-Disposition", $"form-data; name=\"{name}\"; filename=\"{fileName}\"");
         }
         #endregion
     }

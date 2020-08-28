@@ -5,6 +5,8 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -138,6 +140,10 @@ namespace Vic.Api
             {
                 // Ignore invalid SSL certificates.
                 services.AddHttpClient("HttpRequestClient")
+                    .ConfigureHttpClient(config =>
+                    {
+
+                    })
                     .ConfigurePrimaryHttpMessageHandler(() =>
                     new HttpClientHandler()
                     {
@@ -147,8 +153,23 @@ namespace Vic.Api
                         }
                     });
             }
+
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = int.MaxValue; // TODO: Add to configuration
+            });
+            services.Configure<FormOptions>(options =>
+            {
+                options.ValueLengthLimit = int.MaxValue; // TODO: Add to configuration
+                options.MultipartBodyLengthLimit = int.MaxValue; // TODO: Add to configuration
+            });
         }
 
+        /// <summary>
+        /// Configure the application components.
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="env"></param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())

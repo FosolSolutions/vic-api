@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.IIS;
+using Microsoft.Extensions.Options;
 using Synology.FileStation;
 using Vic.Api.Models;
 using Vic.Data;
@@ -25,6 +26,7 @@ namespace Vic.Api.Areas.Admin.Controllers
         #region Variables
         private readonly VicContext _context;
         private readonly IFileStationApi _fileStation;
+        private readonly JsonSerializerOptions _serializeOptions;
         #endregion
 
         #region Constructors
@@ -33,10 +35,12 @@ namespace Vic.Api.Areas.Admin.Controllers
         /// </summary>
         /// <param name="context"></param>
         /// <param name="fileStation"></param>
-        public ItemsController(VicContext context, IFileStationApi fileStation)
+        /// <param name="serializeOptions"></param>
+        public ItemsController(VicContext context, IFileStationApi fileStation, IOptions<JsonSerializerOptions> serializeOptions)
         {
             _context = context;
             _fileStation = fileStation;
+            _serializeOptions = serializeOptions.Value;
         }
         #endregion
 
@@ -112,20 +116,28 @@ namespace Vic.Api.Areas.Admin.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("upload")]
-        public async Task<IActionResult> AddAsync([FromBody] ItemUploadModel model)
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
+        public async Task<IActionResult> AddAsync([FromForm] ItemUploadModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
+            if (model.File == null) throw new ArgumentNullException(nameof(model), $"Property 'file' is required.");
+            
+            var itemModel = JsonSerializer.Deserialize<ItemModel>(model.Item, _serializeOptions);
+            if (String.IsNullOrWhiteSpace(itemModel.Path)) throw new ArgumentException($"Property 'path' is required.", nameof(model));
+            if (String.IsNullOrWhiteSpace(itemModel.Name)) throw new ArgumentException($"Property 'name' is required.", nameof(model));
 
-            var itemModel = System.Text.Json.JsonSerializer.Deserialize<ItemModel>(model.Item);
+            // TODO: Query FileStation if the folder exists.
+            // Do not allow uploading a new file if the file path already exists.
+            //var pathExists = _context.Items.Any(i => i.Path == itemModel.Path);
+            //if (!pathExists) throw new ArgumentException($"Path '{itemModel.Path}' does not exist.");
 
-            if (model.File != null && model.File.Length > 0)
-            {
-                using var stream = new MemoryStream();
-                await model.File.CopyToAsync(stream);
-                var data = stream.ToArray();
-                await _fileStation.UploadAsync(itemModel.Path, data);
-            }
+            var fileExists = _context.Items.Any(i => i.Path == $"{itemModel.Path}/{model.File.FileName}");
+            if (fileExists) throw new ArgumentException($"File '{model.File.FileName}' already exists.");
 
+            await _fileStation.UploadAsync(itemModel.Path, model.File);
+
+            // Need to update the path to include the file.
+            itemModel.Path = $"{itemModel.Path}/{model.File.FileName}";
             return Add(itemModel);
         }
 

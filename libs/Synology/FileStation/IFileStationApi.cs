@@ -1,4 +1,5 @@
-﻿using Synology.FileStation.Models;
+﻿using Microsoft.AspNetCore.Http;
+using Synology.FileStation.Models;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -13,6 +14,7 @@ namespace Synology.FileStation
         Task<DataModel<AuthenticationModel>> LoginAsync(string username, string password, string session = "FileStation", string format = "sid");
         Task<DataModel<string>> LogoutAsync(string session = "FileStation");
         Task<HttpResponseMessage> ThumbAsync(string path, ThumbSize size = ThumbSize.Small, int rotate = 0);
-        Task<DataModel<UploadModel>> UploadAsync(string pathAndFile, byte[] file, bool overwrite = false);
+        Task<DataModel<UploadModel>> UploadAsync(string pathAndFile, byte[] file, string contentType, bool overwrite = false);
+        Task<DataModel<UploadModel>> UploadAsync(string path, IFormFile file, bool overwrite = false);
     }
 }

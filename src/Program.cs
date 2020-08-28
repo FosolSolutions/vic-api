@@ -33,7 +33,7 @@ namespace Vic.Api
             if (env != "VS")
                 DotNetEnv.Env.Load();
             else
-                DotNetEnv.Env.Load(".env.vs");
+                DotNetEnv.Env.Load(".vs.env");
             var config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)

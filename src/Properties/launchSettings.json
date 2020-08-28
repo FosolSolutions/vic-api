@@ -20,7 +20,7 @@
     },
     "Vic.Api": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "filestation/files?path=/talks/Bible Classes",
       "applicationUrl": "https://localhost:10443;http://localhost:1080",
       "environmentVariables": {
