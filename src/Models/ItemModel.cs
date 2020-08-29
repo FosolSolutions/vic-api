@@ -32,6 +32,11 @@ namespace Vic.Api.Models
         public bool IsFolder { get; set; }
 
         /// <summary>
+        /// get/set - The order to display the item in.
+        /// </summary>
+        public int SortOrder { get; set; }
+
+        /// <summary>
         /// get/set - The author of the item.
         /// </summary>
         public string Author { get; set; }
@@ -86,6 +91,7 @@ namespace Vic.Api.Models
             this.Name = item.Name;
             this.Path = item.Path;
             this.IsFolder = item.IsFolder;
+            this.SortOrder = item.SortOrder;
             this.Author = item.Author;
             this.Description = item.Description;
             this.PublishedOn = item.PublishedOn;

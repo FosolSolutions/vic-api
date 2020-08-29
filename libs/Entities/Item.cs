@@ -51,6 +51,11 @@ namespace Vic.Data.Entities
         public bool IsFolder { get; set; }
 
         /// <summary>
+        /// get/set - The order to display the item in.
+        /// </summary>
+        public int SortOrder { get; set; }
+
+        /// <summary>
         /// get/set - Foreign key to the parent of this item.
         /// </summary>
         public int? ParentId { get; set; }

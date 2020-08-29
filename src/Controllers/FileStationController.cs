@@ -45,6 +45,7 @@ namespace Vic.Api.Controllers
         /// <param name="quantity"></param>
         /// <returns></returns>
         [HttpGet("shares")]
+        [ResponseCache(Duration = 3600, VaryByQueryKeys = new[] { "path", "page", "quantity" })]
         public async Task<IActionResult> SharesAsync(string path, int page = 1, int quantity = 0)
         {
             var result = await _fileStation.ListSharesAsync(path ?? "/", page - 1, quantity, SortBy.Name, SortDirection.Ascending, "all", false, new[] { "size", "time" });
@@ -60,6 +61,7 @@ namespace Vic.Api.Controllers
         /// <param name="quantity"></param>
         /// <returns></returns>
         [HttpGet("files")]
+        [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "path", "page", "quantity" })]
         public async Task<IActionResult> FilesAsync(string path, int page = 1, int quantity = 0)
         {
             var result = await _service.ListAsync(path, page, quantity, SortBy.Modified, SortDirection.Descending, "all", false, new[] { "size", "time" });
@@ -91,6 +93,7 @@ namespace Vic.Api.Controllers
         /// <param name="rotate"></param>
         /// <returns></returns>
         [HttpGet("files/thumb")]
+        [ResponseCache(Duration = 3600, VaryByQueryKeys = new[] { "path", "size", "rotate" })]
         public async Task<IActionResult> ThumbnailAsync(string path, ThumbSize size = ThumbSize.Small, int rotate = 0)
         {
             var response = await _fileStation.ThumbAsync(path, size, rotate);
