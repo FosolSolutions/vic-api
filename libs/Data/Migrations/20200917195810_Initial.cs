@@ -25,6 +25,7 @@ namespace Vic.Data.Migrations
                     Author = table.Column<string>(maxLength: 250, nullable: true),
                     ContentType = table.Column<string>(maxLength: 250, nullable: true),
                     IsFolder = table.Column<bool>(nullable: false),
+                    SortOrder = table.Column<int>(nullable: false),
                     ParentId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>

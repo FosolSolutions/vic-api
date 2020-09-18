@@ -59,6 +59,9 @@ namespace Vic.Data.Migrations
                     b.Property<DateTime?>("PublishedOn")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("DATETIME");
 

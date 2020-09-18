@@ -57,11 +57,15 @@ namespace Vic.Api
         #endregion
 
         #region Methods
-
+        /// <summary>
+        /// Configure dependency injection.
+        /// </summary>
+        /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
             services.AddHttpContextAccessor();
+            services.AddResponseCaching();
             services.Configure<JsonSerializerOptions>(options =>
             {
                 options.IgnoreNullValues = !String.IsNullOrWhiteSpace(this.Configuration["Serialization:Json:IgnoreNullValues"]) ? Boolean.Parse(this.Configuration["Serialization:Json:IgnoreNullValues"]) : false;
@@ -148,7 +152,8 @@ namespace Vic.Api
                     new HttpClientHandler()
                     {
                         ClientCertificateOptions = ClientCertificateOption.Manual,
-                        ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) => {
+                        ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) =>
+                        {
                             return HttpClientHandler.DangerousAcceptAnyServerCertificateValidator(sender, cert, chain, errors);
                         }
                     });
@@ -182,6 +187,8 @@ namespace Vic.Api
 
             app.UseRouting();
             app.UseCors(AllowedOrigins);
+
+            app.UseResponseCaching();
 
             app.UseAuthentication();
             app.UseAuthorization();
